@@ -40,7 +40,7 @@ function extractJSON(output: string): any {
 export async function listProcesses(): Promise<ProcessInfo[]> {
   return new Promise((resolve, reject) => {
     // Using --raw to get cleaner output
-    exec('pm2 jlist --raw', (error, stdout, stderr) => {
+    exec('pm2 jlist', (error, stdout, stderr) => {
       if (error) {
         reject(error);
         return;
@@ -80,7 +80,7 @@ export async function restartProcess(processId: number | string) {
 
 export async function getLogs(processId: number | string): Promise<LogData> {
   return new Promise((resolve, reject) => {
-    exec(`pm2 logs ${processId} --lines 100 --nostream --raw`, (error, stdout, stderr) => {
+    exec(`pm2 logs ${processId} --lines 100 --nostream`, (error, stdout, stderr) => {
       if (error) {
         reject(error);
         return;
@@ -121,7 +121,7 @@ export async function getMetrics(): Promise<{
 }> {
   return new Promise((resolve, reject) => {
     // Using --raw to get cleaner output
-    exec('pm2 jlist --raw', (error, stdout, stderr) => {
+    exec('pm2 jlist', (error, stdout, stderr) => {
       if (error) {
         reject(error);
         return;
