@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const processId = params.id;
+    const processId = context.params.id;
     if (!processId || typeof processId !== 'string') {
       return NextResponse.json(
         { success: false, message: 'Invalid or missing Process ID' },
