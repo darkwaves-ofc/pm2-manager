@@ -1,4 +1,3 @@
-// app/lib/pm2Actions.ts
 "use server"
 import { revalidatePath } from "next/cache";
 import { exec } from 'child_process';
@@ -18,17 +17,32 @@ interface LogData {
   stderr: string[];
 }
 
+// Helper function to clean PM2 output
+function cleanPM2Output(output: string): string {
+  // Remove ANSI color codes
+  output = output.replace(/\u001b\[\d+m/g, '');
+  
+  // Remove PM2 log prefixes like ">>>> In-memory PM2 is serving..."
+  output = output.split('\n')
+    .filter(line => line.trim() && !line.startsWith('>>>>'))
+    .join('\n');
+    
+  return output;
+}
+
 // Server Actions
 export async function listProcesses(): Promise<ProcessInfo[]> {
   return new Promise((resolve, reject) => {
-    exec('pm2 jlist', (error, stdout) => {
+    exec('pm2 jlist', (error, stdout, stderr) => {
       if (error) {
         reject(error);
         return;
       }
+      
       try {
-        const list = JSON.parse(stdout);
-        console.log(stdout)
+        const cleanedOutput = cleanPM2Output(stdout);
+        const list = JSON.parse(cleanedOutput);
+        
         const processes = list.map((process: any) => ({
           name: process.name || '',
           id: process.pm_id || 0,
@@ -38,8 +52,9 @@ export async function listProcesses(): Promise<ProcessInfo[]> {
           uptime: process.pm2_env?.pm_uptime || 0,
         }));
         resolve(processes);
-      } catch (err) {
-        reject(err);
+      } catch (err:any) {
+        console.error('Error parsing PM2 output:', stdout);
+        reject(new Error(`Failed to parse PM2 output: ${err.message}`));
       }
     });
   });
@@ -100,14 +115,16 @@ export async function getMetrics(): Promise<{
   totalCPU: number;
 }> {
   return new Promise((resolve, reject) => {
-    exec('pm2 jlist', (error, stdout) => {
+    exec('pm2 jlist', (error, stdout, stderr) => {
       if (error) {
         reject(error);
         return;
       }
+      
       try {
-        const list = JSON.parse(stdout);
-        console.log(stdout)
+        const cleanedOutput = cleanPM2Output(stdout);
+        const list = JSON.parse(cleanedOutput);
+        
         const metrics = {
           totalProcesses: list.length,
           running: list.filter((p: any) => p.pm2_env?.status === 'online').length,
@@ -117,8 +134,10 @@ export async function getMetrics(): Promise<{
           totalCPU: list.reduce((acc: number, p: any) => acc + (p.monit?.cpu || 0), 0),
         };
         resolve(metrics);
-      } catch (err) {
-        reject(err);
+      } catch (err:any) {
+        console.error('Error parsing PM2 output:', stdout);
+        reject(new Error(`Failed to parse PM2 output: ${err.message}`));
       }
     });
-  });}
+  });
+}
