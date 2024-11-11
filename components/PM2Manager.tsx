@@ -150,26 +150,28 @@ export default function PM2Manager({
                 key={process.id}
                 className="flex items-center justify-between p-4 border rounded"
               >
-                <HoverCard>
-                  <HoverCardTrigger>
-                    <div className="flex items-center">
-                      <CircleIcon
-                        className={`h-4 w-4 mr-2 ${
-                          process.status === "running"
-                            ? "text-green-500"
-                            : process.status === "errored"
-                            ? "text-red-500"
-                            : "text-yellow-500"
-                        }`}
-                      />
-                    </div>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-auto space-x-2">
-                    <p className="text-sm">Process ID: {process.id}</p>
-                  </HoverCardContent>
-                </HoverCard>
                 <div>
-                  <h3 className="font-medium">{process.name}</h3>
+                  <h3 className="font-medium flex flex-row items-center">
+                    <HoverCard>
+                      <HoverCardTrigger>
+                        <div className="flex items-center">
+                          <CircleIcon
+                            className={`h-4 w-4 mr-2 ${
+                              process.status === "running"
+                                ? "text-green-500"
+                                : process.status === "errored"
+                                ? "text-red-500"
+                                : "text-yellow-500"
+                            }`}
+                          />
+                        </div>
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-auto space-x-2">
+                        <p className="text-sm">Process ID: {process.id}</p>
+                      </HoverCardContent>
+                    </HoverCard>{" "}
+                    {process.name}
+                  </h3>
                   <p className="text-sm text-muted-foreground">
                     Status: {process.status} | CPU: {process.cpu.toFixed(1)}% |
                     Memory: {(process.memory / 1024 / 1024).toFixed(2)}MB
