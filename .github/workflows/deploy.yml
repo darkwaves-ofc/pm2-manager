@@ -13,20 +13,6 @@ jobs:
     steps:
       # Checkout the repository code
       - uses: actions/checkout@v3
-      
-      # Setup Node.js environment
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          
-      # Install project dependencies
-      - name: Install dependencies
-        run: npm install
-        
-      # Build the Next.js project
-      - name: Build project
-        run: npm run build
         
       # Trigger API reload to restart PM2 process
       - name: Trigger API reload
