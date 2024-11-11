@@ -79,8 +79,8 @@ export default function LogViewerModal({
           throw new Error("Channel not found in response");
         }
         // Initialize Pusher client
-        const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-          cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+        const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || "d0f767f23f93d1dad19d", {
+          cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "ap1",
         });
         // Subscribe to the Pusher channel
         cleanup = subscribeToLogs(
