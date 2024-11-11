@@ -85,7 +85,7 @@ export async function handleLogStreamRequest({
 
   try {
     // Start streaming logs
-    const process = await streamLogsWithPusher(processId, channelName);
+    await streamLogsWithPusher(processId, channelName);
 
     // Store the process reference somewhere if you need to stop it later
     // For example, you could store it in a Map using the channelName as a key
