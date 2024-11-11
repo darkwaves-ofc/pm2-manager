@@ -12,6 +12,10 @@ export async function GET(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
+  res.setHeader("Access-Control-Allow-Origin", "*"); // Update this with specific origin if needed
+  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({
