@@ -11,7 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import LogViewerModal from "@/components/pm2/LogViewerModal";
+// import LogViewerModal from "@/components/pm2/LogViewerModal";
 import {
   HoverCard,
   HoverCardContent,
@@ -181,10 +181,10 @@ export default function PM2Manager({
                   >
                     Restart
                   </Button>
-                  <LogViewerModal
+                  {/* <LogViewerModal
                     processId={process.id}
                     processName={process.name}
-                  />
+                  /> */}
                 </div>
               </div>
             ))}
