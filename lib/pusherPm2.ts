@@ -106,7 +106,7 @@ const pusher = new Pusher({
   /**
    * Client-side code to subscribe to the log stream
    */
-  export function subscribeToLogs(
+  export async function subscribeToLogs(
     pusherClient: any,
     channelName: string,
     onLogReceived: (log: any) => void
