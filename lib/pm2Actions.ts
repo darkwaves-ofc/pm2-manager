@@ -28,6 +28,7 @@ export async function listProcesses(): Promise<ProcessInfo[]> {
       }
       try {
         const list = JSON.parse(stdout);
+        console.log(stdout)
         const processes = list.map((process: any) => ({
           name: process.name || '',
           id: process.pm_id || 0,
@@ -120,5 +121,4 @@ export async function getMetrics(): Promise<{
         reject(err);
       }
     });
-
   });}
