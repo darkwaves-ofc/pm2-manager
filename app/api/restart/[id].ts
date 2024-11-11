@@ -8,7 +8,7 @@ interface ResponseData {
   error?: string;
 }
 
-export default async function handler(
+export async function GET(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
