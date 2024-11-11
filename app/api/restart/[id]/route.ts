@@ -8,10 +8,11 @@ interface ResponseData {
   error?: string;
 }
 
-export async function GET(req: Request | NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: Request | NextRequest) {
   // Extract method and params
   const method = req.method;
-  const id = params?.id;
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
 
   // Only allow GET requests
   if (method !== "GET") {
