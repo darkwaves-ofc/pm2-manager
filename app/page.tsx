@@ -1,13 +1,23 @@
 // app/components/PM2Manager.tsx
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react';
-import { listProcesses, restartProcess, getLogs, getMetrics } from '../lib/pm2Actions';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import LogViewerModal from '@/components/pm2/LogViewerModal';
-
+import { useState, useEffect } from "react";
+import {
+  listProcesses,
+  restartProcess,
+  getLogs,
+  getMetrics,
+} from "../lib/pm2Actions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import LogViewerModal from "@/components/pm2/LogViewerModal";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { CircleIcon } from "lucide-react";
 interface ProcessInfo {
   id: number;
   name: string;
@@ -32,7 +42,7 @@ export default function PM2Manager() {
   const [selectedProcess, setSelectedProcess] = useState<number | null>(null);
   const [logs, setLogs] = useState<LogData>({ stdout: [], stderr: [] });
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     fetchData();
@@ -42,7 +52,7 @@ export default function PM2Manager() {
     try {
       const [processesData, metricsData] = await Promise.all([
         listProcesses(),
-        getMetrics()
+        getMetrics(),
       ]);
       setProcesses(processesData);
       setMetrics(metricsData);
@@ -50,7 +60,7 @@ export default function PM2Manager() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unknown error occurred');
+        setError("An unknown error occurred");
       }
     }
   }
@@ -63,7 +73,7 @@ export default function PM2Manager() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unknown error occurred');
+        setError("An unknown error occurred");
       }
     }
   }
@@ -77,7 +87,7 @@ export default function PM2Manager() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unknown error occurred');
+        setError("An unknown error occurred");
       }
     }
   }
@@ -123,31 +133,52 @@ export default function PM2Manager() {
         <CardContent>
           <div className="space-y-4">
             {processes.map((process) => (
-              <div key={process.id} className="flex items-center justify-between p-4 border rounded">
+              <div
+                key={process.id}
+                className="flex items-center justify-between p-4 border rounded"
+              >
+                <HoverCard>
+                  <HoverCardTrigger>
+                    <div className="flex items-center">
+                      <CircleIcon
+                        className={`h-4 w-4 mr-2 ${
+                          process.status === "running"
+                            ? "text-green-500"
+                            : process.status === "errored"
+                            ? "text-red-500"
+                            : "text-yellow-500"
+                        }`}
+                      />
+                    </div>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-auto space-x-2">
+                    <p className="text-sm">Process ID: {process.id}</p>
+                  </HoverCardContent>
+                </HoverCard>
                 <div>
                   <h3 className="font-medium">{process.name}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Status: {process.status} | CPU: {process.cpu.toFixed(1)}% | 
+                    Status: {process.status} | CPU: {process.cpu.toFixed(1)}% |
                     Memory: {(process.memory / 1024 / 1024).toFixed(2)}MB
                   </p>
                 </div>
                 <div className="space-x-2">
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => handleViewLogs(process.id)}
                   >
                     View Logs
                   </Button>
-                  <Button 
+                  <Button
                     variant="default"
                     onClick={() => handleRestart(process.id)}
                   >
                     Restart
                   </Button>
                   <LogViewerModal
-                processId={process.id}
-                processName={process.name}
-              />
+                    processId={process.id}
+                    processName={process.name}
+                  />
                 </div>
               </div>
             ))}
@@ -166,13 +197,13 @@ export default function PM2Manager() {
               <div>
                 <h4 className="font-medium mb-2">Standard Output</h4>
                 <pre className="bg-secondary p-4 rounded overflow-x-auto">
-                  {logs.stdout.join('\n')}
+                  {logs.stdout.join("\n")}
                 </pre>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Standard Error</h4>
                 <pre className="bg-secondary p-4 rounded overflow-x-auto">
-                  {logs.stderr.join('\n')}
+                  {logs.stderr.join("\n")}
                 </pre>
               </div>
             </div>
