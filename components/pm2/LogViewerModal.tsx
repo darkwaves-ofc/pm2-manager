@@ -10,8 +10,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { streamLogs, stopLogStream } from '@/lib/pm2Actions';
 import { Loader2Icon } from 'lucide-react';
+import Pusher from 'pusher-js';
+import { subscribeToLogs } from '@/lib/pusherPm2';
+
+// Initialize Pusher client
+const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+});
+
+interface LogEntry {
+  type: 'stdout' | 'stderr';
+  data: string;
+  timestamp: string;
+}
 
 interface LogViewerModalProps {
   processId: string | number;
@@ -19,26 +31,35 @@ interface LogViewerModalProps {
 }
 
 export default function LogViewerModal({ processId, processName }: LogViewerModalProps) {
-  const [logs, setLogs] = useState<string[]>([]);
-  const [logProcess, setLogProcess] = useState<any>(null);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Start streaming logs when modal opens
   useEffect(() => {
-    let mounted = true;
+    let cleanup: (() => void) | undefined;
 
     async function startLogStream() {
       if (!isOpen) return;
       
       setIsLoading(true);
       try {
-        const process = await streamLogs(processId, (logData) => {
-          if (mounted) {
-            setLogs(prevLogs => [...prevLogs, logData.data].slice(-1000)); // Keep last 1000 lines
-          }
+        // Start the log stream on the server
+        const response = await fetch(`/api/logs/${processId}`, {
+          method: 'POST',
         });
-        setLogProcess(process);
+        
+        if (!response.ok) {
+          throw new Error('Failed to start log stream');
+        }
+        
+        const { channel } = await response.json();
+        
+        // Subscribe to the Pusher channel
+        cleanup = subscribeToLogs(pusherClient, channel, (logEntry: LogEntry) => {
+          setLogs(prevLogs => [...prevLogs, logEntry].slice(-1000)); // Keep last 1000 lines
+        });
+        
       } catch (error) {
         console.error('Error streaming logs:', error);
       } finally {
@@ -50,22 +71,17 @@ export default function LogViewerModal({ processId, processName }: LogViewerModa
 
     // Cleanup function
     return () => {
-      mounted = false;
-      if (logProcess) {
-        stopLogStream(logProcess);
+      if (cleanup) {
+        cleanup();
       }
     };
   }, [isOpen, processId]);
 
-  // Clear logs and stop stream when modal closes
+  // Clear logs when modal closes
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (!open) {
       setLogs([]);
-      if (logProcess) {
-        stopLogStream(logProcess);
-        setLogProcess(null);
-      }
     }
   };
 
@@ -92,10 +108,15 @@ export default function LogViewerModal({ processId, processName }: LogViewerModa
             <div className="font-mono text-sm whitespace-pre-wrap">
               {logs.map((log, index) => (
                 <div 
-                  key={index} 
-                  className="py-0.5"
+                  key={index}
+                  className={`py-0.5 ${
+                    log.type === 'stderr' ? 'text-red-500' : ''
+                  }`}
                 >
-                  {log}
+                  <span className="text-muted-foreground">
+                    {new Date(log.timestamp).toLocaleTimeString()} -{' '}
+                  </span>
+                  {log.data}
                 </div>
               ))}
             </div>
