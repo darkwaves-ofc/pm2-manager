@@ -111,7 +111,7 @@ export default function LogViewerModal({
         cleanup();
       }
     };
-  }, [isLogViewerOpen, processId]);
+  }, [processId]);
 
   // Clear logs when modal closes
   const handleOpenChange = (open: boolean) => {
