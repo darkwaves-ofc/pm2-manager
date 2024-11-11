@@ -28,7 +28,6 @@ export async function streamLogsWithPusher(
       const pm2Process = spawn("pm2", [
         "logs",
         `${processId}`,
-        "--raw",
         "--lines",
         "0",
       ]);
