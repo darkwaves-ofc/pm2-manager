@@ -5,10 +5,10 @@ import Pusher from "pusher";
 
 // Initialize Pusher
 const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID!,
-  key: process.env.PUSHER_KEY!,
-  secret: process.env.PUSHER_SECRET!,
-  cluster: process.env.PUSHER_CLUSTER!,
+  appId: process.env.PUSHER_APP_ID! || "1894120",
+  key: process.env.PUSHER_KEY! || "d0f767f23f93d1dad19d",
+  secret: process.env.PUSHER_SECRET! || "86d5b9290d7cd8adf8a4",
+  cluster: process.env.PUSHER_CLUSTER! || "ap1",
   useTLS: true,
 });
 
