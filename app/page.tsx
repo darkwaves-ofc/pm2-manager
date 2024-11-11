@@ -6,6 +6,7 @@ import { listProcesses, restartProcess, getLogs, getMetrics } from '../lib/pm2Ac
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import LogViewerModal from '@/components/pm2/LogViewerModal';
 
 interface ProcessInfo {
   id: number;
@@ -143,6 +144,10 @@ export default function PM2Manager() {
                   >
                     Restart
                   </Button>
+                  <LogViewerModal
+                processId={process.id}
+                processName={process.name}
+              />
                 </div>
               </div>
             ))}

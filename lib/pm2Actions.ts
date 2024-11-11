@@ -1,6 +1,6 @@
 "use server"
 import { revalidatePath } from "next/cache";
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 
 // Types
 interface ProcessInfo {
@@ -145,3 +145,50 @@ export async function getMetrics(): Promise<{
     });
   });
 }
+
+// Add this new function for real-time logs
+export async function streamLogs(processId: number | string, onData: (data: { type: 'stdout' | 'stderr', data: string }) => void) {
+    return new Promise((resolve, reject) => {
+      try {
+        // Using spawn instead of exec to handle streaming data
+        const pm2Process = spawn('pm2', ['logs', `${processId}`, '--raw', '--lines', '0']);
+        
+        pm2Process.stdout.on('data', (data) => {
+          onData({
+            type: 'stdout',
+            data: data.toString()
+          });
+        });
+  
+        pm2Process.stderr.on('data', (data) => {
+          onData({
+            type: 'stderr',
+            data: data.toString()
+          });
+        });
+  
+        pm2Process.on('error', (error) => {
+          reject(error);
+        });
+  
+        // Optional: Handle process exit
+        pm2Process.on('exit', (code) => {
+          if (code !== 0) {
+            reject(new Error(`Process exited with code ${code}`));
+          }
+        });
+  
+        // Return the process so it can be killed later if needed
+        resolve(pm2Process);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+  
+  // Helper function to kill the log stream
+  export function stopLogStream(process: any) {
+    if (process && typeof process.kill === 'function') {
+      process.kill();
+    }
+  }
