@@ -45,11 +45,16 @@ export default function PM2Manager({
   initialProcesses: ProcessInfo[];
   initialMetrics: MetricsData;
 }) {
-  const [processes, setProcesses] = useState<ProcessInfo[]>(initialProcesses || []);
+  const [processes, setProcesses] = useState<ProcessInfo[]>(
+    initialProcesses || []
+  );
   const [selectedProcess, setSelectedProcess] = useState<number | null>(null);
   const [logs, setLogs] = useState<LogData>({ stdout: [], stderr: [] });
-  const [metrics, setMetrics] = useState<MetricsData | null>(initialMetrics || null);
+  const [metrics, setMetrics] = useState<MetricsData | null>(
+    initialMetrics || null
+  );
   const [error, setError] = useState<string>("");
+  const [isLogViewerOpen, setLogViewerOpen] = useState<boolean>(false);
 
   //   useEffect(() => {
   //     fetchData();
@@ -74,6 +79,7 @@ export default function PM2Manager({
 
   async function handleRestart(processId: number) {
     try {
+      setLogViewerOpen(true);
       await restartProcess(processId);
       fetchData(); // Refresh the data
     } catch (err) {
@@ -185,6 +191,8 @@ export default function PM2Manager({
                   <LogViewerModal
                     processId={process.id}
                     processName={process.name}
+                    isLogViewerOpen={isLogViewerOpen}
+                    setLogViewerOpen={setLogViewerOpen}
                   />
                 </div>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,14 +23,17 @@ interface LogEntry {
 interface LogViewerModalProps {
   processId: string | number;
   processName?: string;
+  isLogViewerOpen: boolean;
+  setLogViewerOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function LogViewerModal({
   processId,
   processName,
+  isLogViewerOpen,
+  setLogViewerOpen,
 }: LogViewerModalProps) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Start streaming logs when modal opens
@@ -61,7 +64,7 @@ export default function LogViewerModal({
       };
     }
     async function startLogStream() {
-      if (!isOpen) return;
+      if (!isLogViewerOpen) return;
 
       setIsLoading(true);
       try {
@@ -74,14 +77,17 @@ export default function LogViewerModal({
           throw new Error("Failed to start log stream");
         }
 
-        const { channel } = response
+        const { channel } = response;
         if (!channel) {
           throw new Error("Channel not found in response");
         }
         // Initialize Pusher client
-        const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || "d0f767f23f93d1dad19d", {
-          cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "ap1",
-        });
+        const pusherClient = new Pusher(
+          process.env.NEXT_PUBLIC_PUSHER_KEY || "d0f767f23f93d1dad19d",
+          {
+            cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "ap1",
+          }
+        );
         // Subscribe to the Pusher channel
         cleanup = subscribeToLogs(
           pusherClient,
@@ -105,18 +111,18 @@ export default function LogViewerModal({
         cleanup();
       }
     };
-  }, [isOpen, processId]);
+  }, [isLogViewerOpen, processId]);
 
   // Clear logs when modal closes
   const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
+    setLogViewerOpen(open);
     if (!open) {
       setLogs([]);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isLogViewerOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           Get Realtime Logs
