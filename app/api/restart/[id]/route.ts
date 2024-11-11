@@ -8,24 +8,11 @@ interface ResponseData {
   error?: string;
 }
 
-export async function GET(req: Request | NextRequest) {
-  // Extract method and params
-  const method = req.method;
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-
-  // Only allow GET requests
-  if (method !== "GET") {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Method not allowed",
-      },
-      { status: 405 }
-    );
-  }
-
+export async function GET(req: NextRequest) {
   try {
+    // Extract the `id` parameter from the URL
+    const id = req.nextUrl.pathname.split("/").pop();
+    console.log(id);
     // Validate process ID
     if (!id || typeof id !== "string") {
       return NextResponse.json(
