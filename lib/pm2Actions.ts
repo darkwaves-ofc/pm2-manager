@@ -17,32 +17,37 @@ interface LogData {
   stderr: string[];
 }
 
-// Helper function to clean PM2 output
-function cleanPM2Output(output: string): string {
-  // Remove ANSI color codes
-  output = output.replace(/\u001b\[\d+m/g, '');
-  
-  // Remove PM2 log prefixes like ">>>> In-memory PM2 is serving..."
-  output = output.split('\n')
-    .filter(line => line.trim() && !line.startsWith('>>>>'))
-    .join('\n');
+// Helper function to extract valid JSON from PM2 output
+function extractJSON(output: string): any {
+  try {
+    // Find the first '[' and last ']' to extract the JSON array
+    const start = output.indexOf('[');
+    const end = output.lastIndexOf(']') + 1;
     
-  return output;
+    if (start === -1 || end === 0) {
+      throw new Error('No JSON array found in output');
+    }
+    
+    const jsonStr = output.substring(start, end);
+    return JSON.parse(jsonStr);
+  } catch (error:any) {
+    console.error('Raw PM2 output:', output);
+    throw new Error(`Failed to extract JSON from PM2 output: ${error.message}`);
+  }
 }
 
 // Server Actions
 export async function listProcesses(): Promise<ProcessInfo[]> {
   return new Promise((resolve, reject) => {
-    exec('pm2 jlist', (error, stdout, stderr) => {
+    // Using --raw to get cleaner output
+    exec('pm2 jlist --raw', (error, stdout, stderr) => {
       if (error) {
         reject(error);
         return;
       }
       
       try {
-        const cleanedOutput = cleanPM2Output(stdout);
-        const list = JSON.parse(cleanedOutput);
-        
+        const list = extractJSON(stdout);
         const processes = list.map((process: any) => ({
           name: process.name || '',
           id: process.pm_id || 0,
@@ -52,9 +57,9 @@ export async function listProcesses(): Promise<ProcessInfo[]> {
           uptime: process.pm2_env?.pm_uptime || 0,
         }));
         resolve(processes);
-      } catch (err:any) {
-        console.error('Error parsing PM2 output:', stdout);
-        reject(new Error(`Failed to parse PM2 output: ${err.message}`));
+      } catch (err) {
+        console.error('Error processing PM2 output:', err);
+        reject(err);
       }
     });
   });
@@ -115,16 +120,15 @@ export async function getMetrics(): Promise<{
   totalCPU: number;
 }> {
   return new Promise((resolve, reject) => {
-    exec('pm2 jlist', (error, stdout, stderr) => {
+    // Using --raw to get cleaner output
+    exec('pm2 jlist --raw', (error, stdout, stderr) => {
       if (error) {
         reject(error);
         return;
       }
       
       try {
-        const cleanedOutput = cleanPM2Output(stdout);
-        const list = JSON.parse(cleanedOutput);
-        
+        const list = extractJSON(stdout);
         const metrics = {
           totalProcesses: list.length,
           running: list.filter((p: any) => p.pm2_env?.status === 'online').length,
@@ -134,9 +138,9 @@ export async function getMetrics(): Promise<{
           totalCPU: list.reduce((acc: number, p: any) => acc + (p.monit?.cpu || 0), 0),
         };
         resolve(metrics);
-      } catch (err:any) {
-        console.error('Error parsing PM2 output:', stdout);
-        reject(new Error(`Failed to parse PM2 output: ${err.message}`));
+      } catch (err) {
+        console.error('Error processing PM2 output:', err);
+        reject(err);
       }
     });
   });
