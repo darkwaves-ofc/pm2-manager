@@ -17,29 +17,6 @@ import Pusher from "pusher-js";
 const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
   cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
 });
-/**
- * Client-side code to subscribe to the log stream
- */
-function subscribeToLogs(
-  pusherClient: any,
-  channelName: string,
-  onLogReceived: (log: any) => void
-) {
-  const channel = pusherClient.subscribe(channelName);
-
-  channel.bind("log-output", (data: any) => {
-    onLogReceived(data);
-  });
-
-  channel.bind("log-error", (data: any) => {
-    console.error("Log streaming error:", data);
-  });
-
-  return () => {
-    channel.unbind_all();
-    pusherClient.unsubscribe(channelName);
-  };
-}
 
 interface LogEntry {
   type: "stdout" | "stderr";
@@ -59,7 +36,29 @@ export default function LogViewerModal({
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  /**
+   * Client-side code to subscribe to the log stream
+   */
+  function subscribeToLogs(
+    pusherClient: any,
+    channelName: string,
+    onLogReceived: (log: any) => void
+  ) {
+    const channel = pusherClient.subscribe(channelName);
 
+    channel.bind("log-output", (data: any) => {
+      onLogReceived(data);
+    });
+
+    channel.bind("log-error", (data: any) => {
+      console.error("Log streaming error:", data);
+    });
+
+    return () => {
+      channel.unbind_all();
+      pusherClient.unsubscribe(channelName);
+    };
+  }
   // Start streaming logs when modal opens
   useEffect(() => {
     let cleanup: (() => void) | undefined;
