@@ -8,7 +8,7 @@ interface ResponseData {
   error?: string;
 }
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     // Extract the `id` parameter from the URL
     const id = req.nextUrl.pathname.split("/").pop();
