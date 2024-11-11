@@ -1,13 +1,16 @@
 // app/api/restart/[id]/route.ts
 import { restartProcess } from '@/lib/pm2Actions';
+import { NextApiRequest } from 'next';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
+    req: NextApiRequest,
+//   context: { params: { id: string } }
 ) {
   try {
-    const processId = context.params.id;
+    const { id } = req.query
+
+    const processId = id as string;
     if (!processId || typeof processId !== 'string') {
       return NextResponse.json(
         { success: false, message: 'Invalid or missing Process ID' },
