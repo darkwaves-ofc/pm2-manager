@@ -28,7 +28,7 @@ echo "Removing 'dist' directory..."
 
 # Build the project and start
 echo "Building project... and starting server..."
-npm run production
+npm run start
 
 # Display a message indicating the update and build process is complete
 echo "Update and build process complete."
