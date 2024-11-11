@@ -12,6 +12,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2Icon } from "lucide-react";
 import Pusher from "pusher-js";
+import { handleLogStreamRequest } from "@/lib/pusherPm2";
 
 interface LogEntry {
   type: "stdout" | "stderr";
@@ -35,15 +36,12 @@ export default function LogViewerModal({
   // Start streaming logs when modal opens
   useEffect(() => {
     let cleanup: (() => void) | undefined;
-    // Initialize Pusher client
-    const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    });
+
     /**
      * Client-side code to subscribe to the log stream
      */
     function subscribeToLogs(
-      pusherClient: any,
+      pusherClient: Pusher,
       channelName: string,
       onLogReceived: (log: any) => void
     ) {
@@ -68,16 +66,22 @@ export default function LogViewerModal({
       setIsLoading(true);
       try {
         // Start the log stream on the server
-        const response = await fetch(`/api/logs/${processId}`, {
-          method: "POST",
+        const response = await handleLogStreamRequest({
+          processId,
         });
 
-        if (!response.ok) {
+        if (!response.success) {
           throw new Error("Failed to start log stream");
         }
 
-        const { channel } = await response.json();
-
+        const { channel } = response
+        if (!channel) {
+          throw new Error("Channel not found in response");
+        }
+        // Initialize Pusher client
+        const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+          cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+        });
         // Subscribe to the Pusher channel
         cleanup = subscribeToLogs(
           pusherClient,
