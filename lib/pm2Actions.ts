@@ -187,7 +187,7 @@ export async function streamLogs(processId: number | string, onData: (data: { ty
   }
   
   // Helper function to kill the log stream
-  export function stopLogStream(process: any) {
+  export async function stopLogStream(process: any) {
     if (process && typeof process.kill === 'function') {
       process.kill();
     }
