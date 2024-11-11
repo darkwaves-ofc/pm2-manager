@@ -1,5 +1,5 @@
-// pages/api/restart/[id].ts
-import type { NextApiRequest, NextApiResponse } from "next";
+// app/api/restart/[id]/route.ts
+import { NextRequest, NextResponse } from "next/server";
 import { restartProcess } from "@/lib/pm2Actions";
 
 interface ResponseData {
@@ -8,45 +8,56 @@ interface ResponseData {
   error?: string;
 }
 
-export async function GET(
-  req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
-) {
+export async function GET(req: Request | NextRequest, { params }: { params: { id: string } }) {
+  // Extract method and params
+  const method = req.method;
+  const id = params?.id;
+
   // Only allow GET requests
-  if (req.method !== "GET") {
-    return res.status(405).json({
-      success: false,
-      message: "Method not allowed",
-    });
+  if (method !== "GET") {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Method not allowed",
+      },
+      { status: 405 }
+    );
   }
 
   try {
-    const { id } = req.query;
-
     // Validate process ID
     if (!id || typeof id !== "string") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or missing Process ID",
-      });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid or missing Process ID",
+        },
+        { status: 400 }
+      );
     }
 
     // Restart the process
     await restartProcess(id);
 
-    return res.status(200).json({
-      success: true,
-      message: `Successfully restarted process ${id}`,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Successfully restarted process ${id}`,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error restarting process:", error);
     const errorMessage =
       error instanceof Error ? error.message : "An unexpected error occurred";
 
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: errorMessage,
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error",
+        error: errorMessage,
+      },
+      { status: 500 }
+    );
   }
 }
