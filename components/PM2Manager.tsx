@@ -18,6 +18,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { CircleIcon } from "lucide-react";
+import LogViewerModal from "./pm2/LogViewerModal";
 interface ProcessInfo {
   id: number;
   name: string;
@@ -181,10 +182,10 @@ export default function PM2Manager({
                   >
                     Restart
                   </Button>
-                  {/* <LogViewerModal
+                  <LogViewerModal
                     processId={process.id}
                     processName={process.name}
-                  /> */}
+                  />
                 </div>
               </div>
             ))}

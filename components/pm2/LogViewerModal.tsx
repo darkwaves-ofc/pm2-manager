@@ -80,7 +80,7 @@ export default function LogViewerModal({
         const { channel } = await response.json();
 
         // Subscribe to the Pusher channel
-        cleanup = await subscribeToLogs(
+        cleanup = subscribeToLogs(
           pusherClient,
           channel,
           (logEntry: LogEntry) => {
