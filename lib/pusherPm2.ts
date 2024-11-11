@@ -104,30 +104,6 @@ const pusher = new Pusher({
   }
   
   /**
-   * Client-side code to subscribe to the log stream
-   */
-  export async function subscribeToLogs(
-    pusherClient: any,
-    channelName: string,
-    onLogReceived: (log: any) => void
-  ) {
-    const channel = pusherClient.subscribe(channelName);
-    
-    channel.bind('log-output', (data: any) => {
-      onLogReceived(data);
-    });
-    
-    channel.bind('log-error', (data: any) => {
-      console.error('Log streaming error:', data);
-    });
-    
-    return () => {
-      channel.unbind_all();
-      pusherClient.unsubscribe(channelName);
-    };
-  }
-  
-  /**
    * Stops the log stream
    * @param {any} process - The process returned by streamLogsWithPusher
    * @param {string} channelName - The Pusher channel name to trigger the stop event on

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,17 +10,39 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2Icon } from 'lucide-react';
-import Pusher from 'pusher-js';
-import { subscribeToLogs } from '@/lib/pusherPm2';
+import { Loader2Icon } from "lucide-react";
+import Pusher from "pusher-js";
 
 // Initialize Pusher client
 const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
   cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
 });
+/**
+ * Client-side code to subscribe to the log stream
+ */
+function subscribeToLogs(
+  pusherClient: any,
+  channelName: string,
+  onLogReceived: (log: any) => void
+) {
+  const channel = pusherClient.subscribe(channelName);
+
+  channel.bind("log-output", (data: any) => {
+    onLogReceived(data);
+  });
+
+  channel.bind("log-error", (data: any) => {
+    console.error("Log streaming error:", data);
+  });
+
+  return () => {
+    channel.unbind_all();
+    pusherClient.unsubscribe(channelName);
+  };
+}
 
 interface LogEntry {
-  type: 'stdout' | 'stderr';
+  type: "stdout" | "stderr";
   data: string;
   timestamp: string;
 }
@@ -30,7 +52,10 @@ interface LogViewerModalProps {
   processName?: string;
 }
 
-export default function LogViewerModal({ processId, processName }: LogViewerModalProps) {
+export default function LogViewerModal({
+  processId,
+  processName,
+}: LogViewerModalProps) {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,27 +66,30 @@ export default function LogViewerModal({ processId, processName }: LogViewerModa
 
     async function startLogStream() {
       if (!isOpen) return;
-      
+
       setIsLoading(true);
       try {
         // Start the log stream on the server
         const response = await fetch(`/api/logs/${processId}`, {
-          method: 'POST',
+          method: "POST",
         });
-        
+
         if (!response.ok) {
-          throw new Error('Failed to start log stream');
+          throw new Error("Failed to start log stream");
         }
-        
+
         const { channel } = await response.json();
-        
+
         // Subscribe to the Pusher channel
-        cleanup = subscribeToLogs(pusherClient, channel, (logEntry: LogEntry) => {
-          setLogs(prevLogs => [...prevLogs, logEntry].slice(-1000)); // Keep last 1000 lines
-        });
-        
+        cleanup = await subscribeToLogs(
+          pusherClient,
+          channel,
+          (logEntry: LogEntry) => {
+            setLogs((prevLogs) => [...prevLogs, logEntry].slice(-1000)); // Keep last 1000 lines
+          }
+        );
       } catch (error) {
-        console.error('Error streaming logs:', error);
+        console.error("Error streaming logs:", error);
       } finally {
         setIsLoading(false);
       }
@@ -107,14 +135,14 @@ export default function LogViewerModal({ processId, processName }: LogViewerModa
           <ScrollArea className="h-[calc(80vh-8rem)] rounded-md border bg-muted p-4">
             <div className="font-mono text-sm whitespace-pre-wrap">
               {logs.map((log, index) => (
-                <div 
+                <div
                   key={index}
                   className={`py-0.5 ${
-                    log.type === 'stderr' ? 'text-red-500' : ''
+                    log.type === "stderr" ? "text-red-500" : ""
                   }`}
                 >
                   <span className="text-muted-foreground">
-                    {new Date(log.timestamp).toLocaleTimeString()} -{' '}
+                    {new Date(log.timestamp).toLocaleTimeString()} -{" "}
                   </span>
                   {log.data}
                 </div>

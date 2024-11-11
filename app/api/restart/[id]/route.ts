@@ -1,42 +1,54 @@
-// app/api/restart/[id]/route.ts
+// pages/api/restart/[id].ts
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { restartProcess } from '@/lib/pm2Actions';
-import { NextApiRequest } from 'next';
-import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-    req: NextApiRequest,
-//   context: { params: { id: string } }
+interface ResponseData {
+  success: boolean;
+  message: string;
+  error?: string;
+}
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseData>
 ) {
-  try {
-    const { id } = req.query
+  // Only allow GET requests
+  if (req.method !== 'GET') {
+    return res.status(405).json({
+      success: false,
+      message: 'Method not allowed'
+    });
+  }
 
-    const processId = id as string;
-    if (!processId || typeof processId !== 'string') {
-      return NextResponse.json(
-        { success: false, message: 'Invalid or missing Process ID' },
-        { status: 400 }
-      );
+  try {
+    const { id } = req.query;
+
+    // Validate process ID
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or missing Process ID'
+      });
     }
 
-    const result = await restartProcess(processId);
+    // Restart the process
+    await restartProcess(id);
     
-    return NextResponse.json({ 
-      success: true, 
-      message: `Successfully restarted process ${processId}`,
+    return res.status(200).json({
+      success: true,
+      message: `Successfully restarted process ${id}`
     });
+
   } catch (error) {
     console.error('Error restarting process:', error);
     const errorMessage = error instanceof Error 
       ? error.message 
       : 'An unexpected error occurred';
       
-    return NextResponse.json(
-      { 
-        success: false, 
-        message: 'Internal server error',
-        error: errorMessage
-      },
-      { status: 500 }
-    );
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: errorMessage
+    });
   }
 }
