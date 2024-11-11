@@ -54,7 +54,13 @@ export default function PM2Manager({
     initialMetrics || null
   );
   const [error, setError] = useState<string>("");
-  const [isLogViewerOpen, setLogViewerOpen] = useState<boolean>(false);
+  const [isLogViewerOpen, setLogViewerOpen] = useState<{
+    open: boolean;
+    openedID: string | number | null;
+  }>({
+    open: false,
+    openedID: null,
+  });
 
   //   useEffect(() => {
   //     fetchData();
@@ -79,7 +85,10 @@ export default function PM2Manager({
 
   async function handleRestart(processId: number) {
     try {
-      setLogViewerOpen(true);
+      setLogViewerOpen({
+        open: true,
+        openedID: processId,
+      });
       await restartProcess(processId);
       fetchData(); // Refresh the data
     } catch (err) {

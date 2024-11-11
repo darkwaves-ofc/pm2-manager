@@ -23,8 +23,16 @@ interface LogEntry {
 interface LogViewerModalProps {
   processId: string | number;
   processName?: string;
-  isLogViewerOpen: boolean;
-  setLogViewerOpen: Dispatch<SetStateAction<boolean>>;
+  isLogViewerOpen: {
+    open: boolean;
+    openedID: string | number | null;
+  };
+  setLogViewerOpen: Dispatch<
+    SetStateAction<{
+      open: boolean;
+      openedID: string | number | null;
+    }>
+  >;
 }
 
 export default function LogViewerModal({
@@ -115,14 +123,20 @@ export default function LogViewerModal({
 
   // Clear logs when modal closes
   const handleOpenChange = (open: boolean) => {
-    setLogViewerOpen(open);
+    setLogViewerOpen({
+      openedID: processId,
+      open,
+    });
     if (!open) {
       setLogs([]);
     }
   };
 
   return (
-    <Dialog open={isLogViewerOpen} onOpenChange={handleOpenChange}>
+    <Dialog
+      open={isLogViewerOpen.openedID === processId && isLogViewerOpen.open}
+      onOpenChange={handleOpenChange}
+    >
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           Get Realtime Logs
