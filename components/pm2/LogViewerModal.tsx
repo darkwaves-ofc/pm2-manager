@@ -13,11 +13,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2Icon } from "lucide-react";
 import Pusher from "pusher-js";
 
-// Initialize Pusher client
-const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-});
-
 interface LogEntry {
   type: "stdout" | "stderr";
   data: string;
@@ -36,6 +31,10 @@ export default function LogViewerModal({
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // Initialize Pusher client
+  const pusherClient = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+  });
   /**
    * Client-side code to subscribe to the log stream
    */
