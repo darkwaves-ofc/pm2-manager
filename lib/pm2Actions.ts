@@ -1,9 +1,9 @@
-"use server"
+"use server";
 import { revalidatePath } from "next/cache";
 import { exec, spawn } from "child_process";
 
 // Types
-interface ProcessInfo {
+export interface ProcessInfo {
   name: string;
   id: number;
   status: string;
@@ -12,7 +12,7 @@ interface ProcessInfo {
   uptime: number;
 }
 
-interface LogData {
+export interface LogData {
   stdout: string[];
   stderr: string[];
 }
@@ -149,6 +149,16 @@ export async function restartRemoteProcess(
     });
   });
 }
+
+export interface MetricData {
+  totalProcesses: number;
+  running: number;
+  errored: number;
+  stopped: number;
+  totalMemory: number;
+  totalCPU: number;
+}
+
 /**
  * Retrieves various metrics about the processes managed by PM2.
  *
@@ -161,14 +171,7 @@ export async function restartRemoteProcess(
  *   totalCPU: number;
  * }>} A promise that resolves to an object containing the requested metrics.
  */
-export async function getMetrics(): Promise<{
-  totalProcesses: number;
-  running: number;
-  errored: number;
-  stopped: number;
-  totalMemory: number;
-  totalCPU: number;
-}> {
+export async function getMetrics(): Promise<MetricData> {
   return new Promise((resolve, reject) => {
     // Using --raw to get cleaner output
     exec("pm2 jlist", (error, stdout, stderr) => {
@@ -204,4 +207,3 @@ export async function getMetrics(): Promise<{
     });
   });
 }
-

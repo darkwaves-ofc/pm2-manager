@@ -17,5 +17,5 @@ jobs:
       # Trigger API reload to restart PM2 process
       - name: Trigger API reload
         run: |
-          curl -X POST https://pm2-manager.noerror.studio/api/restart/13 \
+          curl -X POST https://pm2-manager.noerror.studio/api/restart/0 \
           -H "Content-Type: application/json"
