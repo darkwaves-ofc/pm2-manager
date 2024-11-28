@@ -7,6 +7,8 @@ import {
   restartProcess,
   getLogs,
   getMetrics,
+  startProcess,
+  stopProcess,
 } from "../lib/pm2Actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { CircleIcon } from "lucide-react";
+import { CircleIcon, Loader2, PlayIcon, StopCircleIcon } from "lucide-react";
 import LogViewerModal from "./pm2/LogViewerModal";
 interface ProcessInfo {
   id: number;
@@ -62,9 +64,15 @@ export default function PM2Manager({
     openedID: null,
   });
 
-  //   useEffect(() => {
-  //     fetchData();
-  //   }, []);
+  // New state to track loading actions for each process
+  const [loadingActions, setLoadingActions] = useState<{
+    [processId: number]: {
+      start: boolean;
+      stop: boolean;
+      restart: boolean;
+      viewLogs: boolean;
+    };
+  }>({});
 
   async function fetchData() {
     try {
@@ -85,6 +93,15 @@ export default function PM2Manager({
 
   async function handleRestart(processId: number) {
     try {
+      // Set loading state for restart
+      setLoadingActions((prev) => ({
+        ...prev,
+        [processId]: {
+          ...prev[processId],
+          restart: true,
+        },
+      }));
+
       setLogViewerOpen({
         open: true,
         openedID: processId,
@@ -97,11 +114,95 @@ export default function PM2Manager({
       } else {
         setError("An unknown error occurred");
       }
+    } finally {
+      // Clear loading state
+      setLoadingActions((prev) => ({
+        ...prev,
+        [processId]: {
+          ...prev[processId],
+          restart: false,
+        },
+      }));
+    }
+  }
+
+  async function handleStart(processId: number) {
+    try {
+      // Set loading state for start
+      setLoadingActions((prev) => ({
+        ...prev,
+        [processId]: {
+          ...prev[processId],
+          start: true,
+        },
+      }));
+
+      setLogViewerOpen({
+        open: true,
+        openedID: processId,
+      });
+      await startProcess(processId);
+      fetchData(); // Refresh the data
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
+    } finally {
+      // Clear loading state
+      setLoadingActions((prev) => ({
+        ...prev,
+        [processId]: {
+          ...prev[processId],
+          start: false,
+        },
+      }));
+    }
+  }
+
+  async function handleStop(processId: number) {
+    try {
+      // Set loading state for stop
+      setLoadingActions((prev) => ({
+        ...prev,
+        [processId]: {
+          ...prev[processId],
+          stop: true,
+        },
+      }));
+
+      await stopProcess(processId);
+      fetchData(); // Refresh the data
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
+    } finally {
+      // Clear loading state
+      setLoadingActions((prev) => ({
+        ...prev,
+        [processId]: {
+          ...prev[processId],
+          stop: false,
+        },
+      }));
     }
   }
 
   async function handleViewLogs(processId: number) {
     try {
+      // Set loading state for view logs
+      setLoadingActions((prev) => ({
+        ...prev,
+        [processId]: {
+          ...prev[processId],
+          viewLogs: true,
+        },
+      }));
+
       const logData = await getLogs(processId);
       setLogs(logData);
       setSelectedProcess(processId);
@@ -111,6 +212,15 @@ export default function PM2Manager({
       } else {
         setError("An unknown error occurred");
       }
+    } finally {
+      // Clear loading state
+      setLoadingActions((prev) => ({
+        ...prev,
+        [processId]: {
+          ...prev[processId],
+          viewLogs: false,
+        },
+      }));
     }
   }
 
@@ -189,15 +299,51 @@ export default function PM2Manager({
                 <div className="space-x-2">
                   <Button
                     variant="outline"
-                    onClick={() => handleViewLogs(process.id)}
+                    onClick={() => handleStart(process.id)}
+                    disabled={loadingActions[process.id]?.start}
+                    className="bg-green-500 hover:bg-green-600 text-white"
                   >
-                    View Logs
+                    {loadingActions[process.id]?.start ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <PlayIcon className="h-4 w-4 mr-1" />
+                    )}
+                    Start
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleStop(process.id)}
+                    disabled={loadingActions[process.id]?.stop}
+                    className="bg-red-500 hover:bg-red-600 text-white"
+                  >
+                    {loadingActions[process.id]?.stop ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <StopCircleIcon className="h-4 w-4 mr-1" />
+                    )}
+                    Stop
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleViewLogs(process.id)}
+                    disabled={loadingActions[process.id]?.viewLogs}
+                  >
+                    {loadingActions[process.id]?.viewLogs ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      "View Logs"
+                    )}
                   </Button>
                   <Button
                     variant="default"
                     onClick={() => handleRestart(process.id)}
+                    disabled={loadingActions[process.id]?.restart}
                   >
-                    Restart
+                    {loadingActions[process.id]?.restart ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      "Restart"
+                    )}
                   </Button>
                   <LogViewerModal
                     processId={process.id}

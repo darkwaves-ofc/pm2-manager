@@ -95,6 +95,42 @@ export async function restartProcess(processId: number | string) {
     });
   });
 }
+
+export async function startProcess(processId: number | string) {
+  return new Promise((resolve, reject) => {
+    exec(`pm2 start ${processId}`, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve({
+        success: true,
+        message: `Process ${processId} restarted successfully`,
+      });
+      revalidatePath("/");
+    });
+  });
+}
+
+
+export async function stopProcess(processId: number | string) {
+  return new Promise((resolve, reject) => {
+    exec(`pm2 stop ${processId}`, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve({
+        success: true,
+        message: `Process ${processId} restarted successfully`,
+      });
+      revalidatePath("/");
+    });
+  });
+}
+
+
+
 /**
  * Retrieves the logs for a specific process managed by PM2.
  *
