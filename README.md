@@ -3,6 +3,8 @@
 
 PM2 Manager is a lightweight web-based tool for managing PM2 processes, providing an intuitive interface to monitor, restart, and manage your Node.js applications.
 
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
 ## Features
 
 - **Process Monitoring**: View real-time information about your PM2 processes.
@@ -80,4 +82,4 @@ Contributions are welcome! Fork the repository, make your changes, and submit a 
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT](https://github.com/darkwaves-ofc/NodeJS-Backend-Structure/blob/main/LICENSE) License.
