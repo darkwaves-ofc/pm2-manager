@@ -82,4 +82,4 @@ Contributions are welcome! Fork the repository, make your changes, and submit a 
 
 ## License
 
-This project is licensed under the [MIT](https://github.com/darkwaves-ofc/NodeJS-Backend-Structure/blob/main/LICENSE) License.
+This project is licensed under the [MIT](https://github.com/darkwaves-ofc/pm2-manager/blob/main/LICENSE) License.
